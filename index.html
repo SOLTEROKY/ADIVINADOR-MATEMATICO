@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADIVINADOR MATEMATICO</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background:
+                radial-gradient(circle at top left, #27345f, transparent 40%),
+                radial-gradient(circle at bottom right, #4d245d, transparent 40%),
+                #090b16;
+            color: white;
+            overflow: hidden;
+        }
+
+        .game {
+            width: min(92%, 650px);
+            min-height: 480px;
+            padding: 45px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(18px);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.45),
+                inset 0 1px rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .screen {
+            width: 100%;
+            animation: fadeIn 0.45s ease;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(130, 140, 255, 0.5));
+        }
+
+        h1 {
+            font-size: clamp(34px, 7vw, 55px);
+            margin-bottom: 15px;
+            letter-spacing: -1px;
+        }
+
+        h2 {
+            font-size: clamp(25px, 5vw, 38px);
+            margin-bottom: 25px;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.72);
+            line-height: 1.7;
+            font-size: 18px;
+        }
+
+        .subtitle {
+            max-width: 480px;
+            margin: 0 auto 35px;
+        }
+
+        .question {
+            min-height: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .question-text {
+            font-size: clamp(27px, 5vw, 42px);
+            line-height: 1.25;
+            font-weight: 600;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            padding: 17px 35px;
+            border-radius: 15px;
+            color: white;
+            font-size: 17px;
+            font-weight: 700;
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .primary {
+            background: linear-gradient(135deg, #6877ff, #9a5cff);
+            box-shadow: 0 10px 30px rgba(104, 119, 255, 0.3);
+        }
+
+        .yes {
+            background: linear-gradient(135deg, #28c76f, #11a85b);
+            min-width: 140px;
+        }
+
+        .no {
+            background: linear-gradient(135deg, #ff5964, #d9364a);
+            min-width: 140px;
+        }
+
+        .restart {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #6877ff, #9a5cff);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .thinking-icon {
+            font-size: 75px;
+            display: inline-block;
+            animation: thinking 1.3s infinite ease-in-out;
+            margin-bottom: 20px;
+        }
+
+        .thinking-dots {
+            margin-top: 15px;
+            font-size: 19px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .thinking-dots span {
+            animation: dots 1.4s infinite;
+        }
+
+        .thinking-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .thinking-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .result-number {
+            font-size: clamp(90px, 20vw, 150px);
+            font-weight: 800;
+            line-height: 1;
+            margin: 20px 0;
+            background: linear-gradient(135deg, #ffffff, #a7b0ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(120, 130, 255, 0.25);
+        }
+
+        .small {
+            font-size: 15px;
+            margin-top: 20px;
+            opacity: 0.5;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes thinking {
+            0%, 100% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            25% {
+                transform: rotate(-8deg) scale(1.05);
+            }
+
+            75% {
+                transform: rotate(8deg) scale(1.05);
+            }
+        }
+
+        @keyframes dots {
+            0%, 20% {
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            80%, 100% {
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .game {
+                padding: 30px 20px;
+                min-height: 430px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="game">
+
+        <!-- PANTALLA INICIAL -->
+        <section id="startScreen" class="screen">
+            <div class="icon">🧠</div>
+
+            <h1>¿Puedo adivinarlo?</h1>
+
+            <p class="subtitle">
+                Piensa en un número del <strong>1 al 100</strong>.
+                No me lo digas. Intentaré descubrirlo haciendo algunas preguntas.
+            </p>
+
+            <button id="startButton" class="primary">
+                COMENZAR
+            </button>
+        </section>
+
+
+        <!-- PANTALLA DE PREGUNTA -->
+        <section id="questionScreen" class="screen hidden">
+
+            <div class="icon">🔮</div>
+
+            <div class="question">
+                <div id="questionText" class="question-text">
+                    Preparando la primera pregunta...
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button id="yesButton" class="yes">
+                    SÍ
+                </button>
+
+                <button id="noButton" class="no">
+                    NO
+                </button>
+            </div>
+
+        </section>
+
+
+        <!-- PANTALLA DE PENSAMIENTO -->
+        <section id="thinkingScreen" class="screen hidden">
+
+            <div class="thinking-icon">🤔</div>
+
+            <h2 id="thinkingTitle">
+                Estoy pensando
+            </h2>
+
+            <div class="thinking-dots">
+                <span>●</span>
+                <span>●</span>
+                <span>●</span>
+            </div>
+
+        </section>
+
+
+        <!-- PANTALLA FINAL -->
+        <section id="resultScreen" class="screen hidden">
+
+            <div class="icon">🎯</div>
+
+            <h2>¡Lo tengo!</h2>
+
+            <p>Estabas pensando en...</p>
+
+            <div id="resultNumber" class="result-number">
+                73
+            </div>
+
+            <p>¿Acerté?</p>
+
+            <button id="restartButton" class="restart">
+                JUGAR DE NUEVO
+            </button>
+
+            <p class="small">
+                Parece que no puedes esconderte de las matemáticas.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <script>
+
+        // =========================================================
+        // CONFIGURACIÓN
+        // =========================================================
+
+        const MAX_QUESTIONS = 7;
+
+        let possibleNumbers = [];
+        let questionCount = 0;
+
+        // Evita repetir exactamente la misma pregunta
+        const usedQuestions = new Set();
+
+
+        // =========================================================
+        // ELEMENTOS DE LA INTERFAZ
+        // =========================================================
+
+        const startScreen = document.getElementById("startScreen");
+        const questionScreen = document.getElementById("questionScreen");
+        const thinkingScreen = document.getElementById("thinkingScreen");
+        const resultScreen = document.getElementById("resultScreen");
+
+        const questionText = document.getElementById("questionText");
+        const resultNumber = document.getElementById("resultNumber");
+
+        const startButton = document.getElementById("startButton");
+        const yesButton = document.getElementById("yesButton");
+        const noButton = document.getElementById("noButton");
+        const restartButton = document.getElementById("restartButton");
+
+        const thinkingTitle = document.getElementById("thinkingTitle");
+
+
+        // =========================================================
+        // FUNCIONES MATEMÁTICAS
+        // =========================================================
+
+        function sumDigits(number) {
+
+            return String(number)
+                .split("")
+                .reduce((sum, digit) => sum + Number(digit), 0);
+
+        }
+
+
+        // =========================================================
+        // BANCO DE PREGUNTAS "POCO OBVIAS"
+        // =========================================================
+
+        function getInterestingQuestions() {
+
+            return [
+
+                {
+                    id: "even",
+                    type: "pattern",
+                    text: "¿El número que pensaste es par?",
+                    test: number => number % 2 === 0
+                },
+
+                {
+                    id: "multiple3",
+                    type: "multiple",
+                    text: "¿Tu número es divisible entre 3?",
+                    test: number => number % 3 === 0
+                },
+
+                {
+                    id: "multiple5",
+                    type: "multiple",
+                    text: "¿Tu número es divisible entre 5?",
+                    test: number => number % 5 === 0
+                },
+
+                {
+                    id: "multiple7",
+                    type: "multiple",
+                    text: "¿Tu número es divisible entre 7?",
+                    test: number => number % 7 === 0
+                },
+
+                {
+                    id: "multiple9",
+                    type: "multiple",
+                    text: "¿Tu número es divisible entre 9?",
+                    test: number => number % 9 === 0
+                },
+
+                {
+                    id: "multiple10",
+                    type: "multiple",
+                    text: "¿Tu número es múltiplo de 10?",
+                    test: number => number % 10 === 0
+                },
+
+                {
+                    id: "lastDigitLow",
+                    type: "digit",
+                    text: "¿La última cifra de tu número está entre 0 y 4?",
+                    test: number => number % 10 <= 4
+                },
+
+                {
+                    id: "lastDigitHigh",
+                    type: "digit",
+                    text: "¿La última cifra de tu número está entre 5 y 9?",
+                    test: number => number % 10 >= 5
+                },
+
+                {
+                    id: "tensEven",
+                    type: "digit",
+                    text: "¿La cifra de las decenas es par?",
+                    test: number => Math.floor(number / 10) % 2 === 0
+                },
+
+                {
+                    id: "digitSumEven",
+                    type: "digit",
+                    text: "¿La suma de las cifras de tu número es par?",
+                    test: number => sumDigits(number) % 2 === 0
+                },
+
+                {
+                    id: "digitSumMultiple3",
+                    type: "digit",
+                    text: "¿La suma de sus cifras es divisible entre 3?",
+                    test: number => sumDigits(number) % 3 === 0
+                },
+
+                {
+                    id: "perfectSquare",
+                    type: "special",
+                    text: "¿Tu número es un cuadrado perfecto?",
+                    test: number => Number.isInteger(Math.sqrt(number))
+                }
+
+            ];
+        }
+
+
+        // =========================================================
+        // ELEGIR LA MEJOR PREGUNTA
+        // =========================================================
+
+        function chooseQuestion() {
+
+            const remainingQuestions = MAX_QUESTIONS - questionCount;
+
+            /*
+                Con N preguntas restantes se pueden distinguir
+                como máximo 2^N posibilidades.
+            */
+
+            const capacityAfterQuestion =
+                Math.pow(2, remainingQuestions - 1);
+
+            const questions = getInterestingQuestions();
+
+            const validQuestions = [];
+
+
+            // -----------------------------------------------------
+            // PRIMERO INTENTAMOS PREGUNTAS MENOS OBVIAS
+            // -----------------------------------------------------
+
+            for (const question of questions) {
+
+                if (usedQuestions.has(question.id)) {
+                    continue;
+                }
+
+                const yesNumbers =
+                    possibleNumbers.filter(question.test);
+
+                const noNumbers =
+                    possibleNumbers.filter(number => !question.test(number));
+
+
+                // Las dos respuestas deben tener algún candidato
+                if (
+                    yesNumbers.length === 0 ||
+                    noNumbers.length === 0
+                ) {
+                    continue;
+                }
+
+
+                /*
+                    Comprobamos si después de esta pregunta
+                    todavía será posible terminar en las preguntas
+                    restantes.
+                */
+
+                const largestGroup =
+                    Math.max(
+                        yesNumbers.length,
+                        noNumbers.length
+                    );
+
+
+                if (largestGroup <= capacityAfterQuestion) {
+
+                    let typePriority = 0;
+
+                    if (question.type === "special") {
+                        typePriority = 0;
+                    }
+
+                    if (question.type === "digit") {
+                        typePriority = 1;
+                    }
+
+                    if (question.type === "multiple") {
+                        typePriority = 2;
+                    }
+
+                    if (question.type === "pattern") {
+                        typePriority = 1;
+                    }
+
+
+                    validQuestions.push({
+
+                        question,
+
+                        difference:
+                            Math.abs(
+                                yesNumbers.length -
+                                noNumbers.length
+                            ),
+
+                        typePriority
+
+                    });
+
+                }
+
+            }
+
+
+            // -----------------------------------------------------
+            // ORDENAMOS POR LA QUE MEJOR DIVIDA LOS CANDIDATOS
+            // -----------------------------------------------------
+
+            if (validQuestions.length > 0) {
+
+                validQuestions.sort((a, b) => {
+
+                    if (a.typePriority !== b.typePriority) {
+                        return a.typePriority - b.typePriority;
+                    }
+
+                    return a.difference - b.difference;
+
+                });
+
+                const selected =
+                    validQuestions[0].question;
+
+                usedQuestions.add(selected.id);
+
+                return selected;
+            }
+
+
+            // =====================================================
+            // SI LAS PREGUNTAS ANTERIORES NO SON SUFICIENTES
+            // HACEMOS UNA PREGUNTA DE RANGO
+            // =====================================================
+
+            const sortedNumbers =
+                [...possibleNumbers].sort((a, b) => a - b);
+
+            const splitIndex =
+                Math.ceil(sortedNumbers.length / 2) - 1;
+
+            const upperLimit =
+                sortedNumbers[splitIndex];
+
+            const lowerLimit =
+                sortedNumbers[0];
+
+
+            const rangeQuestion = {
+
+                id: `range-${questionCount}-${upperLimit}`,
+
+                type: "range",
+
+                text:
+                    `¿Tu número está dentro del intervalo de ${lowerLimit} a ${upperLimit}?`,
+
+                test:
+                    number =>
+                        number >= lowerLimit &&
+                        number <= upperLimit
+
+            };
+
+
+            usedQuestions.add(rangeQuestion.id);
+
+            return rangeQuestion;
+
+        }
+
+
+        // =========================================================
+        // MOSTRAR UNA PANTALLA
+        // =========================================================
+
+        function showScreen(screen) {
+
+            startScreen.classList.add("hidden");
+            questionScreen.classList.add("hidden");
+            thinkingScreen.classList.add("hidden");
+            resultScreen.classList.add("hidden");
+
+            screen.classList.remove("hidden");
+
+        }
+
+
+        // =========================================================
+        // INICIAR EL JUEGO
+        // =========================================================
+
+        function startGame() {
+
+            possibleNumbers =
+                Array.from(
+                    { length: 100 },
+                    (_, index) => index + 1
+                );
+
+            questionCount = 0;
+
+            usedQuestions.clear();
+
+            showThinking(
+                "Preparando tus primeras pistas..."
+            );
+
+        }
+
+
+        // =========================================================
+        // MOSTRAR PREGUNTA
+        // =========================================================
+
+        function showQuestion() {
+
+            if (possibleNumbers.length === 1) {
+
+                showResult();
+
+                return;
+            }
+
+
+            if (questionCount >= MAX_QUESTIONS) {
+
+                // Esto prácticamente nunca debería ocurrir
+                // porque el algoritmo garantiza la resolución.
+                const number =
+                    possibleNumbers[0];
+
+                resultNumber.textContent = number;
+
+                showScreen(resultScreen);
+
+                return;
+            }
+
+
+            const question =
+                chooseQuestion();
+
+
+            questionText.textContent =
+                question.text;
+
+
+            // Guardamos temporalmente la pregunta actual
+            currentQuestion = question;
+
+
+            yesButton.disabled = false;
+            noButton.disabled = false;
+
+
+            showScreen(questionScreen);
+
+        }
+
+
+        let currentQuestion = null;
+
+
+        // =========================================================
+        // RESPONDER
+        // =========================================================
+
+        function answerUser(answer) {
+
+            if (!currentQuestion) {
+                return;
+            }
+
+
+            yesButton.disabled = true;
+            noButton.disabled = true;
+
+
+            if (answer === true) {
+
+                possibleNumbers =
+                    possibleNumbers.filter(
+                        currentQuestion.test
+                    );
+
+            } else {
+
+                possibleNumbers =
+                    possibleNumbers.filter(
+                        number =>
+                            !currentQuestion.test(number)
+                    );
+
+            }
+
+
+            questionCount++;
+
+
+            currentQuestion = null;
+
+
+            showThinking(
+                getThinkingMessage()
+            );
+
+        }
+
+
+        // =========================================================
+        // MENSAJES DE "PENSANDO"
+        // =========================================================
+
+        function getThinkingMessage() {
+
+            const messages = [
+
+                "Analizando tus respuestas...",
+
+                "Buscando una conexión...",
+
+                "Procesando algunas pistas...",
+
+                "Creo que ya estoy cerca...",
+
+                "Comparando posibilidades...",
+
+                "Un momento, estoy concentrándome...",
+
+                "Creo que lo tengo..."
+
+            ];
+
+
+            return messages[
+                Math.min(
+                    questionCount,
+                    messages.length - 1
+                )
+            ];
+
+        }
+
+
+        // =========================================================
+        // ANIMACIÓN DE PENSAMIENTO
+        // =========================================================
+
+        function showThinking(message) {
+
+            thinkingTitle.textContent =
+                message;
+
+            showScreen(thinkingScreen);
+
+
+            /*
+                Un pequeño retraso hace que parezca
+                que realmente está "pensando" y evita
+                mostrar el proceso matemático.
+            */
+
+            setTimeout(() => {
+
+                showQuestion();
+
+            }, 1100);
+
+        }
+
+
+        // =========================================================
+        // RESULTADO
+        // =========================================================
+
+        function showResult() {
+
+            const number =
+                possibleNumbers[0];
+
+            resultNumber.textContent =
+                number;
+
+            showScreen(resultScreen);
+
+        }
+
+
+        // =========================================================
+        // EVENTOS
+        // =========================================================
+
+        startButton.addEventListener(
+            "click",
+            startGame
+        );
+
+
+        yesButton.addEventListener(
+            "click",
+            () => answerUser(true)
+        );
+
+
+        noButton.addEventListener(
+            "click",
+            () => answerUser(false)
+        );
+
+
+        restartButton.addEventListener(
+            "click",
+            () => {
+
+                showScreen(startScreen);
+
+            }
+        );
+
+    </script>
+
+</body>
+</html>
